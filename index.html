@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PromptFoundry — Library</title>
+  <meta name="description" content="PromptFoundry — build, organize, and export your high-performance prompts." />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <!-- Tailwind via CDN for simplicity -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Minimal extras */
+    .card { border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,.06); }
+    .btn  { border-radius: .75rem; padding: .6rem .9rem; font-weight: 600; }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+    .chip { font-size:.75rem; background:#f1f5f9; border-radius:999px; padding:.2rem .6rem; margin-right:.3rem }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .kbd  { border:1px solid #e2e8f0; padding:.1rem .35rem; border-radius:.375rem; background:#fff; }
+  </style>
+</head>
+<body class="bg-white text-slate-900">
+  <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white grid place-items-center font-black">PF</div>
+        <h1 class="text-xl font-bold">PromptFoundry <span class="text-slate-400 text-base">— Library</span></h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="exportJsonBtn" class="btn bg-slate-900 text-white hover:opacity-90">Export JSON</button>
+        <button id="exportCsvBtn"  class="btn bg-slate-100 hover:bg-slate-200">Export CSV</button>
+        <label class="btn bg-slate-100 hover:bg-slate-200 cursor-pointer">
+          Import JSON <input id="importInput" type="file" accept="application/json" class="hidden" />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Quick Filters / Search -->
+    <section class="card p-4 mb-6 border">
+      <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+        <div class="flex gap-2 flex-1">
+          <input id="searchInput" type="text" placeholder="Search prompts, tags, text…" class="w-full border rounded-xl px-3 py-2">
+          <select id="tagFilter" class="border rounded-xl px-3 py-2 min-w-40">
+            <option value="">All tags</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button id="backupBtn" class="btn bg-slate-100 hover:bg-slate-200">Backup ✔︎</button>
+          <button id="resetBtn"  class="btn bg-rose-50 text-rose-700 hover:bg-rose-100">Reset (fresh)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Create / Edit Form -->
+    <section class="card p-5 border mb-6">
+      <h2 class="text-lg font-semibold mb-3">New / Edit Prompt</h2>
+      <form id="promptForm" class="grid gap-3">
+        <input type="hidden" id="promptId" />
+        <div class="grid md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm font-medium">Title</label>
+            <input id="title" class="w-full border rounded-xl px-3 py-2" placeholder="e.g., Sales Email — Discovery Call Follow-up" required />
+          </div>
+          <div>
+            <label class="text-sm font-medium">Tags (comma-separated)</label>
+            <input id="tags" class="w-full border rounded-xl px-3 py-2" placeholder="sales, email, followup" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium">Variables (comma-separated)</label>
+          <input id="variables" class="w-full border rounded-xl px-3 py-2 mono" placeholder="customer_name, product, offer, deadline" />
+        </div>
+
+        <div>
+          <label class="text-sm font-medium">Instructions / Prompt Body</label>
+          <textarea id="body" rows="8" class="w-full border rounded-xl px-3 py-2 mono" placeholder="Write your high-performance prompt here…" required></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button class="btn bg-slate-900 text-white hover:opacity-90" id="saveBtn" type="submit">Save Prompt</button>
+          <button class="btn bg-slate-100 hover:bg-slate-200" id="clearBtn" type="button">Clear Form</button>
+          <span class="text-slate-500 text-sm flex items-center gap-2">Tip: Press <span class="kbd">⌘</span> / <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to save</span>
+        </div>
+      </form>
+    </section>
+
+    <!-- List -->
+    <section id="listSection" class="card p-0 border overflow-hidden">
+      <div class="border-b px-4 py-3 flex items-center justify-between">
+        <h3 class="font-semibold">Your Prompts</h3>
+        <span id="countBadge" class="text-sm text-slate-500">0 items</span>
+      </div>
+      <div id="emptyState" class="p-6 text-slate-500 hidden">
+        No prompts yet. Add one above, or <button id="loadSamples" class="underline">load sample set</button>.
+      </div>
+      <ul id="promptList" class="divide-y"></ul>
+    </section>
+  </main>
+
+  <template id="promptItemTpl">
+    <li class="p-4 hover:bg-slate-50">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="font-semibold truncate"></div>
+          <div class="mt-1 text-sm text-slate-600 truncate"></div>
+          <div class="mt-2"></div>
+        </div>
+        <div class="shrink-0 flex gap-2">
+          <button class="copy btn bg-slate-900 text-white">Copy</button>
+          <button class="edit btn bg-slate-100">Edit</button>
+          <button class="del  btn bg-rose-50 text-rose-700">Delete</button>
+        </div>
+      </div>
+      <pre class="mono text-sm bg-slate-50 p-3 rounded-xl mt-3 overflow-x-auto hidden"></pre>
+    </li>
+  </template>
+
+  <script>
+    const LS_KEY = "pf_prompts_v1";
+
+    /** State **/
+    let prompts = loadLS();
+    let filter = { q: "", tag: "" };
+
+    /** DOM refs **/
+    const form = document.getElementById("promptForm");
+    const promptId = document.getElementById("promptId");
+    const title = document.getElementById("title");
+    const tags = document.getElementById("tags");
+    const variables = document.getElementById("variables");
+    const body = document.getElementById("body");
+    const clearBtn = document.getElementById("clearBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const searchInput = document.getElementById("searchInput");
+    const tagFilter = document.getElementById("tagFilter");
+    const promptList = document.getElementById("promptList");
+    const emptyState = document.getElementById("emptyState");
+    const countBadge = document.getElementById("countBadge");
+    const tpl = document.getElementById("promptItemTpl");
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const exportCsvBtn  = document.getElementById("exportCsvBtn");
+    const importInput   = document.getElementById("importInput");
+    const resetBtn      = document.getElementById("resetBtn");
+    const backupBtn     = document.getElementById("backupBtn");
+    const loadSamples   = document.getElementById("loadSamples");
+
+    /** Utils **/
+    function uid(){ return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2); }
+    function loadLS(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }catch(e){ return []; } }
+    function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(prompts)); }
+    function toCSV(rows){
+      const esc = v => `"${String(v ?? "").replaceAll('"','""')}"`;
+      const header = ["id","title","tags","variables","body","created_at","updated_at"];
+      const lines = [header.map(esc).join(",")];
+      rows.forEach(r=>{
+        lines.push([r.id, r.title, (r.tags||[]).join("|"), (r.variables||[]).join("|"), r.body, r.created_at, r.updated_at].map(esc).join(","))
+      });
+      return lines.join("\n");
+    }
+    function download(filename, text, mime="application/json"){
+      const blob = new Blob([text], {type:mime});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    }
+    function nowISO(){ return new Date().toISOString(); }
+
+    /** Render **/
+    function render(){
+      // Tag options
+      const allTags = Array.from(new Set(prompts.flatMap(p=>p.tags||[]))).sort((a,b)=>a.localeCompare(b));
+      tagFilter.innerHTML = `<option value="">All tags</option>` + allTags.map(t=>`<option>${t}</option>`).join("");
+
+      // Filtered list
+      let view = prompts.slice();
+      if(filter.q){
+        const q = filter.q.toLowerCase();
+        view = view.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          (p.body||"").toLowerCase().includes(q) ||
+          (p.tags||[]).some(t=>t.toLowerCase().includes(q))
+        );
+      }
+      if(filter.tag){
+        view = view.filter(p => (p.tags||[]).includes(filter.tag));
+      }
+
+      promptList.innerHTML = "";
+      countBadge.textContent = `${view.length} item${view.length!==1?'s':''}`;
+
+      if(view.length === 0){
+        emptyState.classList.remove("hidden");
+        return;
+      }
+      emptyState.classList.add("hidden");
+
+      view.forEach(p=>{
+        const li = tpl.content.cloneNode(true);
+        const titleEl = li.querySelector(".font-semibold");
+        const metaEl  = li.querySelector(".text-slate-600");
+        const chipBox = li.querySelector("div.mt-2");
+        const pre     = li.querySelector("pre");
+        const btnCopy = li.querySelector("button.copy");
+        const btnEdit = li.querySelector("button.edit");
+        const btnDel  = li.querySelector("button.del");
+
+        titleEl.textContent = p.title;
+        metaEl.textContent  = (p.variables||[]).length ? `Vars: ${p.variables.join(", ")}` : "No variables";
+        chipBox.innerHTML   = (p.tags||[]).map(t=>`<span class="chip">${t}</span>`).join("");
+
+        const fullText = p.body;
+        pre.textContent = fullText;
+
+        // Expand/collapse body on title click
+        titleEl.parentElement.addEventListener("click", ()=> pre.classList.toggle("hidden"));
+
+        btnCopy.addEventListener("click", async ()=>{
+          try{
+            await navigator.clipboard.writeText(fullText);
+            btnCopy.textContent = "Copied!";
+            setTimeout(()=>btnCopy.textContent="Copy",1000);
+          }catch(e){
+            alert("Clipboard blocked. Select the text and copy manually.");
+          }
+        });
+        btnEdit.addEventListener("click", ()=>{
+          promptId.value = p.id;
+          title.value = p.title;
+          tags.value = (p.tags||[]).join(", ");
+          variables.value = (p.variables||[]).join(", ");
+          body.value = p.body || "";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        btnDel.addEventListener("click", ()=>{
+          if(confirm("Delete this prompt?")){
+            prompts = prompts.filter(x => x.id !== p.id);
+            saveLS(); render();
+          }
+        });
+
+        promptList.appendChild(li);
+      });
+    }
+
+    /** Handlers **/
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const id = promptId.value || uid();
+      const data = {
+        id,
+        title: title.value.trim(),
+        tags: tags.value.split(",").map(s=>s.trim()).filter(Boolean),
+        variables: variables.value.split(",").map(s=>s.trim()).filter(Boolean),
+        body: body.value,
+      };
+      if(!data.title || !data.body){ alert("Title and body are required."); return; }
+
+      const existing = prompts.find(p => p.id === id);
+      const ts = nowISO();
+      if(existing){
+        Object.assign(existing, data, {updated_at: ts});
+      }else{
+        prompts.unshift(Object.assign(data, {created_at: ts, updated_at: ts}));
+      }
+      saveLS();
+      form.reset();
+      promptId.value = "";
+      render();
+    });
+
+    clearBtn.addEventListener("click", ()=>{ form.reset(); promptId.value=""; });
+
+    // Keyboard: Cmd/Ctrl + Enter to save
+    document.addEventListener("keydown", (e)=>{
+      if((e.metaKey || e.ctrlKey) && e.key === "Enter"){
+        saveBtn.click();
+      }
+    });
+
+    searchInput.addEventListener("input", ()=>{
+      filter.q = searchInput.value.trim();
+      render();
+    });
+
+    tagFilter.addEventListener("change", ()=>{
+      filter.tag = tagFilter.value || "";
+      render();
+    });
+
+    exportJsonBtn.addEventListener("click", ()=>{
+      const name = `promptfoundry_library_${new Date().toISOString().slice(0,10)}.json`;
+      download(name, JSON.stringify(prompts, null, 2), "application/json");
+    });
+
+    exportCsvBtn.addEventListener("click", ()=>{
+      const name = `promptfoundry_library_${new Date().toISOString().slice(0,10)}.csv`;
+      download(name, toCSV(prompts), "text/csv");
+    });
+
+    importInput.addEventListener("change", async (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      try{
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if(!Array.isArray(data)) throw new Error("Invalid file format.");
+        if(confirm("Merge with existing library? Click Cancel to REPLACE.")){
+          // Merge by id (update existing, add new)
+          const byId = Object.fromEntries(prompts.map(p=>[p.id,p]));
+          data.forEach(p=>{
+            if(byId[p.id]) byId[p.id] = {...byId[p.id], ...p, updated_at: nowISO()};
+            else byId[p.id] = {...p};
+          });
+          prompts = Object.values(byId).sort((a,b)=> (b.updated_at||"").localeCompare(a.updated_at||""));
+        }else{
+          prompts = data;
+        }
+        saveLS(); render();
+      }catch(err){
+        alert("Import failed: " + err.message);
+      }finally{
+        importInput.value = "";
+      }
+    });
+
+    resetBtn.addEventListener("click", ()=>{
+      if(confirm("This clears your local library (cannot be undone). Continue?")){
+        prompts = [];
+        saveLS(); render();
+      }
+    });
+
+    backupBtn.addEventListener("click", ()=>{
+      const payload = {
+        app: "PromptFoundry",
+        version: 1,
+        exported_at: nowISO(),
+        prompts
+      };
+      const name = `promptfoundry_backup_${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+      download(name, JSON.stringify(payload, null, 2));
+    });
+
+    // Sample data (optional)
+    if(loadSamples){
+      loadSamples.addEventListener("click", ()=>{
+        const sample = [
+          {
+            id: uid(),
+            title: "Sales Follow-Up — Discovery",
+            tags: ["sales","email","followup"],
+            variables: ["customer_name","company","offer","cta","deadline"],
+            body:
+`You are a concise, persuasive SDR.
+Write a short follow-up email after a discovery call.
+
+Inputs:
+- Customer: {customer_name}
+- Company: {company}
+- Offer: {offer}
+- CTA: {cta}
+- Deadline: {deadline}
+
+Constraints:
+- 120–160 words
+- Clear subject line
+- One CTA
+- Friendly, confident tone`,
+            created_at: nowISO(), updated_at: nowISO()
+          },
+          {
+            id: uid(),
+            title: "Product Description — Amazon A+",
+            tags: ["ecommerce","amazon","copy"],
+            variables: ["product_name","key_benefits","target_audience"],
+            body:
+`Write an Amazon product description for {product_name}.
+
+- Target audience: {target_audience}
+- Key benefits: {key_benefits}
+
+Rules:
+- 5 bullets, each ≤ 20 words
+- No hype claims; emphasize outcomes
+- Include one soft social proof line`,
+            created_at: nowISO(), updated_at: nowISO()
+          }
+        ];
+        prompts = sample.concat(prompts);
+        saveLS(); render();
+      });
+    }
+
+    // First paint
+    render();
+  </script>
+</body>
+</html>
