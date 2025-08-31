@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/>
+<title>PromptFoundry Library</title>
+<style>body{font-family:ui-sans-serif,system-ui,-apple-system;max-width:1000px;margin:40px auto;padding:0 16px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}@media(min-width:1024px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.card{border:1px solid #e5e7eb;border-radius:16px;padding:16px;background:#fff}.badge{background:#f3f4f6;border-radius:999px;padding:4px 10px;font-size:12px;color:#374151;margin-right:6px}
+pre{white-space:pre-wrap;background:#fafafa;border-radius:12px;padding:12px;margin:0}</style></head>
+<body>
+<h1>PromptFoundry Library</h1>
+<p>Search/tag filter & copy are available in the React app; this static version is zero-build and simple.</p>
+<div id="grid" class="grid"></div>
+<script>
+(async function(){
+  const res = await fetch('library.json', {cache:'no-store'});
+  const items = await res.json();
+  const grid = document.getElementById('grid');
+  items.sort((a,b)=>(b.rating||0)-(a.rating||0));
+  grid.innerHTML = items.map(x => 
+    '<div class="card"><h3>'+x.title+'</h3>' +
+    '<div>'+(x.tags||[]).map(t=>'<span class="badge">#'+t+'</span>').join(' ')+'</div>' +
+    '<pre>'+String(x.prompt||'').replaceAll('&','&amp;').replaceAll('<','&lt;')+'</pre></div>'
+  ).join('');
+})();
+</script>
+</body></html>

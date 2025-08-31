@@ -1,0 +1,14 @@
+[
+  {
+    "id": "seed1",
+    "title": "Chargebacks - Network-Safe Letter",
+    "tags": [
+      "Disputex",
+      "Operations"
+    ],
+    "rating": 5,
+    "uses": 0,
+    "createdAt": "2025-08-31T23:53:01.636067",
+    "prompt": "Draft a representment for {{network}} {{reason_code}}. Include {{order_id}}, {{amount}}, IP/device, AVS/CVV, delivery, comms. Map evidence to issuer criteria. Ask for reversal."
+  }
+]
