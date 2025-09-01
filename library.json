@@ -1,6 +1,71 @@
 [
   {
-    "id": "seed1",
+    "title": "Local Services - 75-Word Lead Gen",
+    "tags": [
+      "Universal",
+      "LeadGen",
+      "Universal"
+    ],
+    "rating": 5,
+    "prompt": "Write a {{channel}} outreach for a {{industry}} {{role}} offering {{service}} in {{city}}. Tone: {{tone}}. Include one proof ({{proof_point}}) and a single CTA to book a {{time_window}} using {{cta_link}}. Keep under {{word_limit}} words.\n\n---\nOUTCOME CARD\nUse when: Leads/Appointments\nFill: {{city}} {{cta_link}} {{time_window}} {{tone}}\nAttach: proof/case + calendar link\nSend to: prospects in {{city}}\nExpected: reply or booking",
+    "id": "m96aj0c1",
+    "uses": 0,
+    "createdAt": "2025-09-01T16:38:24.021Z"
+  },
+  {
+    "title": "Operations - Overdue Invoice Follow-Up",
+    "tags": [
+      "Universal",
+      "Finance",
+      "Universal"
+    ],
+    "rating": 5,
+    "prompt": "Write a {{channel}} follow-up for Invoice {{invoice_number}} ({{amount}}) sent {{sent_date}}. Tone: {{tone}}. Include payment link {{cta_link}} and two optional call slots. Cap at {{word_limit}} words.\n\n---\nOUTCOME CARD\nUse when: Invoice Collections\nFill: {{city}} {{cta_link}} {{time_window}} {{tone}}\nAttach: invoice PDF, payment link, prior thread\nSend to: accounting/contact\nExpected: payment or call confirm",
+    "id": "58nhf0fm",
+    "uses": 0,
+    "createdAt": "2025-09-01T16:38:24.021Z"
+  },
+  {
+    "title": "Merchant - Network-Safe Chargeback Letter",
+    "tags": [
+      "Universal",
+      "Disputes",
+      "Universal"
+    ],
+    "rating": 5,
+    "prompt": "Draft a representment for {{network}} {{reason_code}}. Include {{order_id}}, {{amount}}, {{order_date}} and evidence (IP/device, AVS/CVV, 3-D Secure, delivery, comms). Map evidence to criteria. Ask for reversal.\n\n---\nOUTCOME CARD\nUse when: Win Chargebacks\nFill: {{city}} {{cta_link}} {{time_window}} {{tone}}\nAttach: receipts, IP/device, AVS/CVV, 3-D Secure, delivery, comms\nSend to: processor/issuer\nExpected: reversal",
+    "id": "ntja3jlf",
+    "uses": 0,
+    "createdAt": "2025-09-01T16:38:24.021Z"
+  },
+  {
+    "title": "Pricing - Margin Impact Playbook",
+    "tags": [
+      "Universal",
+      "Pricing",
+      "Universal"
+    ],
+    "rating": 5,
+    "prompt": "Given competitor prices and cost basis {{cost_basis}}, output top 10 price moves with estimated margin delta and risks. Prioritize.\n\n---\nOUTCOME CARD\nUse when: Pricing/Margins\nFill: {{city}} {{cta_link}} {{time_window}} {{tone}}\nAttach: price CSV, cost basis\nSend to: stakeholder\nExpected: approved copy/actions",
+    "id": "6bptdwkt",
+    "uses": 0,
+    "createdAt": "2025-09-01T16:38:24.021Z"
+  },
+  {
+    "title": "Landing - Value Prop & Hero",
+    "tags": [
+      "Universal",
+      "Copy",
+      "Universal"
+    ],
+    "rating": 5,
+    "prompt": "For {{industry}} {{service}}, write a hero headline (<=10), subhead (<=18), three benefits, and a primary CTA label. Output compact JSON.\n\n---\nOUTCOME CARD\nUse when: Landing Page Copy\nFill: {{city}} {{cta_link}} {{time_window}} {{tone}}\nAttach: relevant artifact(s)\nSend to: stakeholder\nExpected: approved copy/actions",
+    "id": "lkee3w25",
+    "uses": 0,
+    "createdAt": "2025-09-01T16:38:24.021Z"
+  },
+  {
+    "id": "fkpj5sq9",
     "title": "Chargebacks - Network-Safe Letter",
     "tags": [
       "Disputex",
@@ -8,7 +73,42 @@
     ],
     "rating": 5,
     "uses": 0,
-    "createdAt": "2025-08-31T23:53:01.636067",
+    "createdAt": "2025-09-01T00:00:55.466Z",
     "prompt": "Draft a representment for {{network}} {{reason_code}}. Include {{order_id}}, {{amount}}, IP/device, AVS/CVV, delivery, comms. Map evidence to issuer criteria. Ask for reversal."
+  },
+  {
+    "id": "0z4nv2ok",
+    "title": "ClientReach - Overdue Invoice Nudge",
+    "tags": [
+      "ClientReach",
+      "Cold Email"
+    ],
+    "rating": 5,
+    "uses": 0,
+    "createdAt": "2025-09-01T00:00:55.467Z",
+    "prompt": "Follow-up for Invoice {{invoice_number}} ({{amount}}) sent {{sent_date}}. Include one payment link {{pay_url}} and two call slots. Tone: confident, respectful, direct."
+  },
+  {
+    "id": "u4vrr34k",
+    "title": "Lead Gen - Local Services (75)",
+    "tags": [
+      "Cold Email",
+      "LeadGen"
+    ],
+    "rating": 5,
+    "uses": 0,
+    "createdAt": "2025-09-01T00:00:55.467Z",
+    "prompt": "Write a {{channel}} for a {{industry}} {{role}} offering {{service}} in {{city}}. Include one proof ({{proof_point}}) and a CTA to book a {{time_window}} at {{cta_link}}. Keep under {{word_limit}} words."
+  },
+  {
+    "id": "ukrk87il",
+    "title": "Landing - 10-second Hero",
+    "tags": [
+      "Landing"
+    ],
+    "rating": 4,
+    "uses": 0,
+    "createdAt": "2025-09-01T00:00:55.467Z",
+    "prompt": "For {{industry}} {{service}}, output hero headline (<=10 words), subhead (<=18), 3 benefits, and a primary CTA. Return JSON."
   }
 ]
